@@ -1,10 +1,8 @@
 /* (C) Jorge Suarez 2024 */
 package com.addi.url_shortener.usecases;
 
+import com.addi.url_shortener.adapters.URLRepository;
 import com.addi.url_shortener.utils.Constants;
-import com.addi.url_shortener.utils.UrlShortenerUtils;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,26 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ShortenURLUseCase {
 
-	private final Map<String, Map<String, String>> urlMap;
+	private final URLRepository urlRepository;
 
 	public String buildShortCode(String url) {
-		var codeBuilder = UrlShortenerUtils.generateCode();
+		var code = urlRepository.save(url);
 
-		String code = codeBuilder.toString();
-
-		if (urlMap.containsKey(code)) {
-			int size = urlMap.get(code).size();
-			var subString = UrlShortenerUtils.generateSubcode(size);
-
-			urlMap.get(code).put(subString, url);
-			codeBuilder.append(subString);
-		} else {
-			Map<String, String> codeMap = new HashMap<>();
-			codeMap.put(Constants.ALLOWED_CHARACTERS[0], url);
-
-			this.urlMap.put(code, codeMap);
-		}
-
-		return codeBuilder.insert(0, Constants.LOCAL_URL).toString();
+		return Constants.LOCAL_URL + code;
 	}
 }

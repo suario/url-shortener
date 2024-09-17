@@ -3,63 +3,45 @@ package com.addi.url_shortener.usecases;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
+import com.addi.url_shortener.adapters.URLRepository;
 import com.addi.url_shortener.enums.ApplicationResponseEnum;
 import com.addi.url_shortener.exceptions.BusinessException;
-import com.addi.url_shortener.utils.Constants;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class GetURLUseCaseTest {
 
+	@Mock
+	private URLRepository urlRepository;
+
+	@InjectMocks
 	private GetURLUseCase urlUseCase;
-
-	@BeforeEach
-	void setUp() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
-		Map<String, String> codeMap = new HashMap<>();
-		codeMap.put(Constants.ALLOWED_CHARACTERS[0], Constants.LOCAL_URL + "test");
-
-		urlMap.put("code", codeMap);
-
-		urlUseCase = new GetURLUseCase(urlMap);
-	}
 
 	@Test
 	@DisplayName("gets the url from the memory")
 	void getUrl() throws BusinessException {
+
+		when(urlRepository.findByCode(anyString())).thenReturn(Optional.of("url"));
 		String result = urlUseCase.getUrl("code");
 
-		assertEquals(Constants.LOCAL_URL + "test", result);
+		assertEquals("url", result);
 	}
 
 	@Test
 	@DisplayName("throws exception when url is not found in the map")
 	void getUrl2() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
+		when(urlRepository.findByCode(anyString())).thenReturn(Optional.empty());
 
-		urlUseCase = new GetURLUseCase(urlMap);
-
-		BusinessException exception = assertThrows(BusinessException.class, () -> urlUseCase.getUrl("nocode"));
-
-		assertEquals(ApplicationResponseEnum.URL_NOT_FOUND_EXCEPTION, exception.getResponseCode());
-	}
-
-	@Test
-	@DisplayName("throws exception when url is found in the map, but not found in the child map")
-	void getUrl3() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
-		Map<String, String> codeMap = new HashMap<>();
-		codeMap.put(Constants.ALLOWED_CHARACTERS[5], Constants.LOCAL_URL + "test");
-
-		urlMap.put("codenuev", codeMap);
-
-		urlUseCase = new GetURLUseCase(urlMap);
-
-		BusinessException exception = assertThrows(BusinessException.class, () -> urlUseCase.getUrl("codenuevo"));
+		BusinessException exception = assertThrows(BusinessException.class, () -> urlUseCase.getUrl("code"));
 
 		assertEquals(ApplicationResponseEnum.URL_NOT_FOUND_EXCEPTION, exception.getResponseCode());
 	}
