@@ -12,25 +12,25 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
-public class NestedMapURLDataRepositoryTest {
+public class SingleMapURLDataRepositoryTest {
 
-	private NestedMapURLDataRepository urlDataRepository;
+	private SingleMapURLDataRepository urlDataRepository;
 
 	@BeforeEach
 	void setUp() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
+		Map<String, Map<String, String>> exceptionMap = new HashMap<>();
 		Map<String, String> codeMap = new HashMap<>();
 		codeMap.put(Constants.ALLOWED_CHARACTERS[0], "test");
 
-		urlMap.put("code", codeMap);
+		exceptionMap.put("code", codeMap);
 
-		urlDataRepository = new NestedMapURLDataRepository(urlMap);
+		Map<String, String> urlMap = new HashMap<>();
+		urlMap.put("code", "url");
+
+		urlDataRepository = new SingleMapURLDataRepository(urlMap, exceptionMap);
 	}
 
 	@Test
@@ -38,15 +38,13 @@ public class NestedMapURLDataRepositoryTest {
 	void getUrl() {
 		Optional<String> result = urlDataRepository.findByCode("code");
 
-		assertEquals("test", result.orElse(null));
+		assertEquals("url", result.orElse(null));
 	}
 
 	@Test
 	@DisplayName("throws exception when url is not found in the map")
 	void getUrl2() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
-
-		urlDataRepository = new NestedMapURLDataRepository(urlMap);
+		urlDataRepository = new SingleMapURLDataRepository();
 
 		Optional<String> result = urlDataRepository.findByCode("nocode");
 
@@ -56,13 +54,16 @@ public class NestedMapURLDataRepositoryTest {
 	@Test
 	@DisplayName("throws exception when url is found in the map, but not found in the child map")
 	void getUrl3() {
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
+		Map<String, Map<String, String>> exceptionMap = new HashMap<>();
 		Map<String, String> codeMap = new HashMap<>();
 		codeMap.put(Constants.ALLOWED_CHARACTERS[5], "test");
 
-		urlMap.put("codenuev", codeMap);
+		exceptionMap.put("codenuev", codeMap);
 
-		urlDataRepository = new NestedMapURLDataRepository(urlMap);
+		Map<String, String> urlMap = new HashMap<>();
+		urlMap.put("code", "url");
+
+		urlDataRepository = new SingleMapURLDataRepository(urlMap, exceptionMap);
 
 		Optional<String> result = urlDataRepository.findByCode("codenuevo");
 
@@ -87,11 +88,14 @@ public class NestedMapURLDataRepositoryTest {
 	@DisplayName("generates a second url with the same code")
 	void buildShortCode2() {
 
-		Map<String, Map<String, String>> urlMap = new HashMap<>();
+		Map<String, Map<String, String>> exceptionMap = new HashMap<>();
 		Map<String, String> codeMap = new HashMap<>();
-		urlMap.put("test", codeMap);
+		exceptionMap.put("test", codeMap);
 
-		urlDataRepository = new NestedMapURLDataRepository(urlMap);
+		Map<String, String> urlMap = new HashMap<>();
+		urlMap.put("test", "url");
+
+		urlDataRepository = new SingleMapURLDataRepository(urlMap, exceptionMap);
 
 		try (MockedStatic<UrlShortenerUtils> utilities = Mockito.mockStatic(UrlShortenerUtils.class)) {
 			utilities.when(UrlShortenerUtils::generateCode).thenReturn(new StringBuilder("test"));
