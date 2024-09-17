@@ -1,9 +1,9 @@
 /* (C) Jorge Suarez 2024 */
 package com.addi.url_shortener.config;
 
+import com.addi.url_shortener.adapters.URLRepository;
 import com.addi.url_shortener.usecases.GetURLUseCase;
 import com.addi.url_shortener.usecases.ShortenURLUseCase;
-import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
 public class UseCaseConfig {
 
 	@Bean
-	public ShortenURLUseCase createShortenURLUseCase(Map<String, Map<String, String>> urlMap) {
-		return new ShortenURLUseCase(urlMap);
+	public ShortenURLUseCase createShortenURLUseCase(URLRepository urlRepository) {
+		return new ShortenURLUseCase(urlRepository);
 	}
 
 	@Bean
-	public GetURLUseCase createGetURLUseCase(Map<String, Map<String, String>> urlMap) {
-		return new GetURLUseCase(urlMap);
+	public GetURLUseCase createGetURLUseCase(URLRepository urlRepository) {
+		return new GetURLUseCase(urlRepository);
 	}
 }

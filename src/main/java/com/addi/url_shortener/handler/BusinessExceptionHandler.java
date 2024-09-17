@@ -15,10 +15,30 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @ControllerAdvice
 @Slf4j
 public class BusinessExceptionHandler {
+
+	@ExceptionHandler(Exception.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public ErrorResponse handleInternalException(Exception ex) {
+		if (!ObjectUtils.isEmpty(ex.getCause())) {
+			log.error("Exception: {}", ex.getCause().getLocalizedMessage());
+		}
+		return new ErrorResponse(300, ex.getMessage());
+	}
+
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public ErrorResponse handleBusinessException(HandlerMethodValidationException ex) {
+		log.error("Validation exception: {}", ex.getLocalizedMessage());
+		return new ErrorResponse(ApplicationResponseEnum.URL_SHORTENER_BAD_REQUEST.getCode(),
+				ApplicationResponseEnum.URL_SHORTENER_BAD_REQUEST.getMessage());
+	}
 
 	@ExceptionHandler(BusinessException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
